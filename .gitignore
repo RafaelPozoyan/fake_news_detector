@@ -1,0 +1,5 @@
+.venv
+__pycache__
+models/fake_news_detector.pkl
+models/label_mapping.pkl
+models/tfidf_vectorizer.pkl
