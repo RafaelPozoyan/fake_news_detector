@@ -182,7 +182,14 @@ def set_background_and_styles():
             font-weight: 700;
             color: #0369a1;
         }
-        
+
+        .stImage.round-logo img {
+            border-radius: 50%;
+        }
+        .stImage.default-img img {
+            border-radius: 0 !important;
+        }
+
         .metric-label {
             font-size: 1rem;
             color: #64748b;
@@ -244,17 +251,10 @@ stopwords_list = load_stopwords()
 # САЙДБАР
 # ============================================
 with st.sidebar:
-    st.markdown("""
-        <style>
-        .stImage img {
-            border-radius: 50%;
-        }
-        </style>
-    """, unsafe_allow_html=True)
 
     # Логотип
     logo = Image.open('assets/logo.png')
-    st.image(logo, use_column_width=True)
+    st.image(logo, use_column_width=True, output_format="round-logo")
     
     st.markdown("---")
     
@@ -285,7 +285,7 @@ with st.sidebar:
             """
             <div style='color: #FFFFE0;'>
                 <h4 style='color: #FFFFE0;'>⚠️ Статус модели</h4>
-                <p>Модель не найдена. Демонстрационный режим.</p>
+                <p>Модель не найдена.</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -300,6 +300,7 @@ with st.sidebar:
             <ul>
                 <li><strong>Модель:</strong> Logistic Regression</li>
                 <li><strong>Векторизация:</strong> TF-IDF</li>
+                <li><strong>Score на датасете:</strong> TF-IDF</li>
             </ul>
         </div>
         """,
@@ -439,6 +440,11 @@ if check_button:
                         st.write(f"- Слов в заголовке: {len(headline_clean.split())}")
                         st.write(f"- Слов в тексте (использовано): {len(body_words)}")
                         st.write(f"- Всего слов для анализа: {len(combined_text.split())}")
-            
+                    
+                    # Графики
+                    with st.expander("🤖 Работа моделей"):
+                        st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_format="default-img")
+
+  
             except Exception as e:
                 st.error(f'❌ Произошла ошибка при анализе: {str(e)}')
