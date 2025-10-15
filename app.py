@@ -3,6 +3,8 @@ import pickle
 import re
 from PIL import Image
 import os
+import json
+from pathlib import Path
 
 # ============================================
 # НАСТРОЙКА СТРАНИЦЫ
@@ -206,6 +208,21 @@ set_background_and_styles()
 # ============================================
 # ФУНКЦИИ ПРЕДОБРАБОТКИ
 # ============================================
+def load_metrics():
+    path = Path("results/metrics/metrics.json")
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+metrics = load_metrics()
+if metrics:
+    best_model_name = metrics["best_model_name"]
+    best_acc = metrics["val_accuracy"]
+    best_f1 = metrics["val_f1"]
+else:
+    best_model_name, best_acc, best_f1 = None, None, None
+
 import nltk
 from nltk.corpus import stopwords
 import streamlit as st
@@ -272,7 +289,8 @@ with st.sidebar:
         """
         <div style='color: #FFFFE0;'>
             <h3 style='color: #FFFFE0;'>О проекте</h3>
-            <p>Система автоматической детекции фейковых новостей.</p>
+            <p>Система автоматической детекции фейковых новостей. Вы можете проверить любую новость на достоверность, 
+            просто вставив заголовок  и текст инфоповода в соответствующие поля</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -308,12 +326,12 @@ with st.sidebar:
         <div style='color: #FFFFE0;'>
             <h4 style='color: #FFFFE0;'>📊 Информация</h4>
             <ul>
-                <li><strong>Модель:</strong> Logistic Regression</li>
+                <li><strong>Модель:</strong> {model}</li>
                 <li><strong>Векторизация:</strong> TF-IDF</li>
-                <li><strong>Score на датасете:</strong> TF-IDF</li>
+                <li><strong>Score на датасете (accuracy):</strong> {accuracy_score:.3f}</li>
             </ul>
         </div>
-        """,
+        """.format(model=best_model_name, accuracy_score=best_acc),
         unsafe_allow_html=True
     )
 

@@ -1,0 +1,5 @@
+{
+  "best_model_name": "Logistic Regression",
+  "val_accuracy": 0.9523809523809523,
+  "val_f1": 0.9523677248677249
+}
