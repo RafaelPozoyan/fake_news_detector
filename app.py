@@ -206,12 +206,22 @@ set_background_and_styles()
 # ============================================
 # ФУНКЦИИ ПРЕДОБРАБОТКИ
 # ============================================
-@st.cache_data
-def load_stopwords():
-    """Загрузка русских стоп-слов"""
-    import nltk
-    from nltk.corpus import stopwords
+import nltk
+from nltk.corpus import stopwords
+import streamlit as st
+
+@st.cache_data(show_spinner=False)
+def ensure_nltk_stopwords():
+    try:
+        # Проба доступа без скачивания
+        _ = stopwords.words('russian')
+    except LookupError:
+        nltk.download('stopwords')
     return stopwords.words('russian')
+
+@st.cache_data(show_spinner=False)
+def load_stopwords():
+    return ensure_nltk_stopwords()
 
 def preprocess_text(text, stopwords_list):
     """Предобработка текста"""
@@ -432,9 +442,9 @@ if check_button:
                         st.write("**Распределение вероятностей:**")
                         col1, col2 = st.columns(2)
                         with col1:
-                            st.metric("Фейковая новость", f"{probabilities[0]:.4f}")
+                            st.metric("Фейковая новость", f"{probabilities[0]:.2f}")
                         with col2:
-                            st.metric("Реальная новость", f"{probabilities[1]:.4f}")
+                            st.metric("Реальная новость", f"{probabilities[1]:.2f}")
                         
                         st.write("**Длина обработанного текста:**")
                         st.write(f"- Слов в заголовке: {len(headline_clean.split())}")
