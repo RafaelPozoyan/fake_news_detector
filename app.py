@@ -1,357 +1,239 @@
-import streamlit as st
-import pickle
-import re
-from PIL import Image
+# app.py (фиксированные пороги; пользователь не управляет cos/jacc/overlap/L2)
+# Требуемые файлы:
+#   - models/fake_news_w2v_lr.pkl
+#   - models/w2v_vectors.kv
+#   - models/metrics.pkl (опционально)
+#   - assets/logo.png
+
 import os
-import json
-from pathlib import Path
-
-# ============================================
-# НАСТРОЙКА СТРАНИЦЫ
-# ============================================
-st.set_page_config(
-    page_title="Детектор фейковых новостей",
-    page_icon="🔍",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# ============================================
-# CSS СТИЛИ
-# ============================================
-def set_background_and_styles():
-    st.markdown(
-        """
-        <style>
-        /* Основной фон приложения */
-        .stApp {
-            background: rgb(20, 19, 28);
-        }
-        
-        /* Заголовки */
-        h1 {
-            color: #FFFFE0;
-            font-weight: 700;
-            text-align: center;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        h2 {
-            color: #FFFFE0;
-            font-weight: 600;
-        }
-        
-        h3 {
-            color: #FFFFE0;
-            font-weight: 600;
-        }
-        
-        /* Кнопки */
-        .stButton>button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #FFFFE0;
-            border-radius: 7px;
-            padding: 0.75rem 3rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border: none;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .stButton>button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        
-        .stButton>button:active {
-            transform: translateY(0);
-        }
-        
-        /* Текстовые поля */
-        .stTextInput>div>div>input {
-            border-radius: 7px;
-            border: 2px solid #e5e7eb;
-            font-size: 1rem;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        
-        .stTextInput>div>div>input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        /* Текстовая область */
-        .stTextArea>div>div>textarea {
-            border-radius: 7px;
-            border: 2px solid #e5e7eb;
-            font-size: 1rem;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        
-        .stTextArea>div>div>textarea:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        /* Метки полей ввода */
-        .stTextInput>label, .stTextArea>label {
-            font-weight: 1000;
-            color: #FFFFE0;
-            font-size: 1.1rem;
-        }
-        
-        /* Success сообщения */
-        .stSuccess {
-            background-color: #d1fae5;
-            border-left: 5px solid #10b981;
-            border-radius: 10px;
-            padding: 1rem;
-        }
-        
-        /* Error сообщения */
-        .stError {
-            background-color: #fee2e2;
-            border-left: 5px solid #ef4444;
-            border-radius: 10px;
-            padding: 1rem;
-        }
-        
-        /* Warning сообщения */
-        .stWarning {
-            background-color: #fef3c7;
-            border-left: 5px solid #f59e0b;
-            border-radius: 10px;
-            padding: 1rem;
-        }
-        
-        /* Info сообщения */
-        .stInfo {
-            background-color: #dbeafe;
-            border-left: 5px solid #3b82f6;
-            border-radius: 10px;
-            padding: 1rem;
-        }
-        
-        /* Сайдбар */
-        [data-testid="stSidebar"] {
-            background: #0e1117;
-        }
-        
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-            color: white;
-        }
-        
-        [data-testid="stSidebar"] h1, 
-        [data-testid="stSidebar"] h2, 
-        [data-testid="stSidebar"] h3 {
-            color: white;
-        }
-        
-        /* Разделители */
-        hr {
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-            border: none;
-            border-top: 2px solid #e5e7eb;
-        }
-        
-        /* Кастомные классы для карточек */
-        .info-card {
-            background-color: #f8fafc;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .metric-container {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            margin: 1rem 0;
-        }
-        
-        .metric-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #0369a1;
-        }
-
-        .stImage.round-logo img {
-            border-radius: 50%;
-        }
-        .stImage.default-img img {
-            border-radius: 0 !important;
-        }
-
-        .metric-label {
-            font-size: 1rem;
-            color: #64748b;
-            margin-top: 0.5rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# Применяем стили
-set_background_and_styles()
-
-# ============================================
-# ФУНКЦИИ ПРЕДОБРАБОТКИ
-# ============================================
-def load_metrics():
-    path = Path("results/metrics/metrics.json")
-    if path.exists():
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return None
-
-metrics = load_metrics()
-if metrics:
-    best_model_name = metrics["best_model_name"]
-    best_acc = metrics["val_accuracy"]
-    best_f1 = metrics["val_f1"]
-else:
-    best_model_name, best_acc, best_f1 = None, None, None
-
-import nltk
-from nltk.corpus import stopwords
+import re
+import pickle
+import numpy as np
 import streamlit as st
+from PIL import Image
+from gensim.models import KeyedVectors
 
-@st.cache_data(show_spinner=False)
-def ensure_nltk_stopwords():
-    try:
-        # Проба доступа без скачивания
-        _ = stopwords.words('russian')
-    except LookupError:
-        nltk.download('stopwords')
-    return stopwords.words('russian')
+# =========================
+# Страница и стили
+# =========================
+st.set_page_config(page_title="Детектор фейков (W2V + Rules)", page_icon="🔍", layout="wide")
 
-@st.cache_data(show_spinner=False)
+def set_styles():
+    st.markdown("""
+    <style>
+    .stApp { background: rgb(20, 19, 28); }
+    h1 { color: #FFFFE0; font-weight: 700; text-align: center; font-size: 3rem; margin-bottom: 0.5rem; }
+    h2, h3 { color: #FFFFE0; font-weight: 600; }
+    .stButton>button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #FFFFE0; border-radius: 7px; padding: 0.75rem 3rem; font-weight: 600;
+        font-size: 1.1rem; border: none; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease; width: 100%;
+    }
+    .stButton>button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+        border-radius: 7px; border: 2px solid #e5e7eb; font-size: 1rem; padding: 0.75rem; transition: all 0.3s ease;
+    }
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .stTextInput>label, .stTextArea>label { font-weight: 1000; color: #FFFFE0; font-size: 1.1rem; }
+    [data-testid="stSidebar"] { background: #0e1117; }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] { color: white; }
+    .metric-container { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 1.5rem; text-align: center; margin: 1rem 0; }
+    .metric-value { font-size: 2.5rem; font-weight: 700; color: #0369a1; }
+    .metric-label { font-size: 1rem; color: #64748b; margin-top: 0.5rem; }
+    .stImage.round-logo img { border-radius: 50% !important; }
+    .stImage.default-img img { border-radius: 0 !important; }
+    .streamlit-expanderHeader { color: #FFFFE0 !important; font-weight: 600; }
+    </style>
+    """, unsafe_allow_html=True)
+
+set_styles()
+
+# =========================
+# Предобработка
+# =========================
+@st.cache_data
 def load_stopwords():
-    return ensure_nltk_stopwords()
+    try:
+        import nltk
+        from nltk.corpus import stopwords
+        return set(stopwords.words('russian'))
+    except Exception:
+        return {"и","в","во","не","что","он","на","я","с","со","как","а","то","все","она","так","его","но","да","ты","к","у","же","вы","за","бы","по","ее","мне","было"}
 
 def preprocess_text(text, stopwords_list):
-    """Предобработка текста"""
-    if not isinstance(text, str) or len(text) == 0:
+    if not isinstance(text, str):
         return ""
-    
-    text = text.lower()
-    text = re.sub(r'http\S+|www\S+|https\S+', '', text)
-    text = re.sub(r'\S+@\S+', '', text)
-    text = re.sub(r'<.*?>', '', text)
-    text = re.sub(r'[^а-яё\s]', ' ', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    
-    words = text.split()
-    words = [word for word in words if word not in stopwords_list and len(word) > 2]
-    
-    return ' '.join(words)
+    t = text.lower()
+    t = re.sub(r'http\S+|www\S+|https\S+', '', t)
+    t = re.sub(r'\S+@\S+', '', t)
+    t = re.sub(r'<.*?>', '', t)
+    t = re.sub(r'[^а-яёa-z0-9\s]', ' ', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+    toks = [w for w in t.split() if w not in stopwords_list and len(w) > 2]
+    return " ".join(toks)
 
-# ============================================
-# ЗАГРУЗКА МОДЕЛИ
-# ============================================
+STOPWORDS = load_stopwords()
+
+# =========================
+# Загрузка артефактов
+# =========================
 @st.cache_resource
-def load_model():
-    """Загрузка обученной модели и векторизатора"""
-    try:
-        model = pickle.load(open('models/fake_news_detector.pkl', 'rb'))
-        vectorizer = pickle.load(open('models/tfidf_vectorizer.pkl', 'rb'))
-        return model, vectorizer, True
-    except FileNotFoundError:
-        return None, None, False
+def load_artifacts():
+    clf = None; kv = None; metrics = None
+    if os.path.exists("models/fake_news_w2v_lr.pkl"):
+        with open("models/fake_news_w2v_lr.pkl", "rb") as f:
+            clf = pickle.load(f)
+    if os.path.exists("models/w2v_vectors.kv"):
+        kv = KeyedVectors.load("models/w2v_vectors.kv")
+    if os.path.exists("models/metrics.pkl"):
+        with open("models/metrics.pkl", "rb") as f:
+            metrics = pickle.load(f)
+    return clf, kv, metrics
 
-# Загружаем модель
-model, vectorizer, model_loaded = load_model()
-stopwords_list = load_stopwords()
+clf, kv, train_metrics = load_artifacts()
 
-# ============================================
-# САЙДБАР
-# ============================================
+# =========================
+# Функции признаков
+# =========================
+def doc_vector(tokens, kv_model):
+    vecs = [kv_model[w] for w in tokens if w in kv_model]
+    if not vecs:
+        return np.zeros(kv_model.vector_size, dtype=np.float32)
+    return np.vstack(vecs).mean(axis=0)
+
+def cosine(u, v):
+    nu, nv = np.linalg.norm(u), np.linalg.norm(v)
+    if nu == 0 or nv == 0:
+        return 0.0
+    return float(np.dot(u, v) / (nu * nv))
+
+def jaccard(a_tokens, b_tokens):
+    A, B = set(a_tokens), set(b_tokens)
+    if not A and not B:
+        return 0.0
+    return len(A & B) / max(1, len(A | B))
+
+def overlap_ratio(a_tokens, b_tokens):
+    A, B = set(a_tokens), set(b_tokens)
+    return 0.0 if not A else len(A & B) / len(A)
+
+def build_feature_vector(headline_clean, body_clean, kv_model, max_len=150):
+    htoks = headline_clean.split()[:max_len]
+    btoks = body_clean.split()[:max_len]
+
+    h_vec = doc_vector(htoks, kv_model)
+    b_vec = doc_vector(btoks, kv_model)
+
+    cos_sim = cosine(h_vec, b_vec)
+    jacc = jaccard(htoks, btoks)
+    ovr = overlap_ratio(htoks, btoks)
+    diff = np.abs(h_vec - b_vec)
+    prod = h_vec * b_vec
+    l2 = np.linalg.norm(h_vec - b_vec)
+
+    feats = np.hstack([h_vec, b_vec, diff, prod, [cos_sim, jacc, ovr, l2]])
+    return feats, {"cosine": cos_sim, "jaccard": jacc, "overlap": ovr, "l2": l2}
+
+def predict(headline_raw, body_raw, clf_model, kv_model):
+    headline_clean = preprocess_text(headline_raw, STOPWORDS)
+    body_clean = preprocess_text(body_raw, STOPWORDS)
+    if len(headline_clean) < 2 or len(body_clean) < 5:
+        return None, None, headline_clean, body_clean, None
+    X, rel = build_feature_vector(headline_clean, body_clean, kv_model)
+    X = X.reshape(1, -1)
+    prob = clf_model.predict_proba(X)[0]
+    pred = int(clf_model.predict(X)[0])
+    return pred, prob, headline_clean, body_clean, rel
+
+# =========================
+# Фиксированные пороги и правила
+# =========================
+DEFAULT_THRESHOLDS = {
+    "proba_real": 0.55,   # базовый порог вероятности класса "реально"
+    "cos_min": 0.20,      # мин косинусной близости
+    "jacc_min": 0.05,     # мин Jaccard
+    "overlap_min": 0.10,  # мин overlap
+    "l2_max": 14.0,       # макс L2(h-b)
+}
+HARD_RULES = {
+    "very_low_cos": 0.10,
+    "zero_overlap": 0.00,
+}
+
+def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=HARD_RULES):
+    reasons = []
+    if rel["cosine"] < hard_rules["very_low_cos"]:
+        reasons.append(f"Очень низкая косинусная близость: {rel['cosine']:.3f}")
+        return 0, reasons
+    if rel["overlap"] <= hard_rules["zero_overlap"]:
+        reasons.append("В заголовке нет слов, встречающихся в тексте (overlap=0)")
+        return 0, reasons
+
+    soft_ok = True
+    if rel["cosine"] < thresholds["cos_min"]:
+        soft_ok = False; reasons.append(f"cosine ниже порога ({rel['cosine']:.3f} < {thresholds['cos_min']})")
+    if rel["jaccard"] < thresholds["jacc_min"]:
+        soft_ok = False; reasons.append(f"Jaccard ниже порога ({rel['jaccard']:.3f} < {thresholds['jacc_min']})")
+    if rel["overlap"] < thresholds["overlap_min"]:
+        soft_ok = False; reasons.append(f"overlap ниже порога ({rel['overlap']:.3f} < {thresholds['overlap_min']})")
+    if rel["l2"] > thresholds["l2_max"]:
+        soft_ok = False; reasons.append(f"L2(h-b) выше порога ({rel['l2']:.3f} > {thresholds['l2_max']})")
+
+    if prob_real >= thresholds["proba_real"] and soft_ok:
+        return 1, reasons
+    else:
+        if prob_real >= thresholds["proba_real"]:
+            reasons.append(f"Вероятность модели высокая ({prob_real:.2f}), но связи не подтверждены правилами")
+        return 0, reasons
+
+# =========================
+# Сайдбар (без контролов порогов)
+# =========================
 with st.sidebar:
-
-    # Логотип
     logo = Image.open('assets/logo.png')
     st.image(logo, use_column_width=True, output_format="round-logo")
-    
+
     st.markdown("---")
-    
-    st.markdown(
-        """
-        <div style='color: #FFFFE0;'>
-            <h3 style='color: #FFFFE0;'>О проекте</h3>
-            <p>Система автоматической детекции фейковых новостей. Вы можете проверить любую новость на достоверность, 
-            просто вставив заголовок  и текст инфоповода в соответствующие поля</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    st.markdown("---")
-    
-    if model_loaded:
-        st.markdown(
-            """
-            <div style='color: #FFFFE0;'>
-                <h4 style='color: #FFFFE0;'>✅ Статус модели</h4>
-                <p>Модель загружена и готова к работе</p>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    if clf is not None and kv is not None:
+        st.markdown("<div style='color:#FFFFE0;'><h4>✅ Статус</h4><p>Модель и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
     else:
+        st.markdown("<div style='color:#FFFFE0;'><h4>⚠️ Статус</h4><p>Нет модели или эмбеддингов в models/</p></div>", unsafe_allow_html=True)
+
+    st.markdown("---")
+    if train_metrics:
         st.markdown(
-            """
-            <div style='color: #FFFFE0;'>
-                <h4 style='color: #FFFFE0;'>⚠️ Статус модели</h4>
-                <p>Модель не найдена.</p>
+            f"""
+            <div style='color:#FFFFE0;'>
+                <h4>📊 Метрики обучения</h4>
+                <ul>
+                    <li><strong>Модель:</strong> {train_metrics.get("best_model_name","LR+W2V")}</li>
+                    <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
+                    <li><strong>Val F1:</strong> {train_metrics.get("val_f1","-"):.3f}</li>
+                    <li><strong>Dim:</strong> {train_metrics.get("vector_size","-")}</li>
+                </ul>
             </div>
             """,
             unsafe_allow_html=True
         )
-    
-    st.markdown("---")
-    
-    st.markdown(
-        """
-        <div style='color: #FFFFE0;'>
-            <h4 style='color: #FFFFE0;'>📊 Информация</h4>
-            <ul>
-                <li><strong>Модель:</strong> {model}</li>
-                <li><strong>Векторизация:</strong> TF-IDF</li>
-                <li><strong>Score на датасете (accuracy):</strong> {accuracy_score:.3f}</li>
-            </ul>
-        </div>
-        """.format(model=best_model_name, accuracy_score=best_acc),
-        unsafe_allow_html=True
-    )
 
-# ============================================
-# ГЛАВНЫЙ КОНТЕНТ
-# ============================================
-
-# Заголовок
-st.title('🔍 Детектор фейковых новостей')
+# =========================
+# Главный контент
+# =========================
+st.title('🔍 Детектор фейковых новостей (Word2Vec + Rules)')
 
 st.markdown(
     """
     <div style='text-align: center; color: #FFFFE0; font-size: 1.2rem; margin-bottom: 2rem;'>
-        Проверьте достоверность новости с помощью искусственного интеллекта
+        Модель оценивает семантическую согласованность заголовка и текста и применяет фиксированные правила.
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Инструкция
 with st.expander("📖 Как пользоваться?", expanded=False):
     st.markdown("""
     1. Введите заголовок новости в первое поле
@@ -362,117 +244,96 @@ with st.expander("📖 Как пользоваться?", expanded=False):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Форма ввода
 with st.container():
-    headline = st.text_input(
-        '📰 Заголовок новости:',
-        placeholder='Например: Банк России снизил ключевую ставку до 17%',
-        help='Введите заголовок новости, которую хотите проверить'
-    )
-    
-    body = st.text_area(
-        '📄 Текст новости:',
-        height=250,
-        placeholder='Вставьте полный текст новости или её основную часть...',
-        help='Вставьте текст статьи для анализа'
-    )
-    
-    # Кнопка проверки
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
+    headline = st.text_input('📰 Заголовок новости:', placeholder='Например: Банк России снизил ключевую ставку до 17%')
+    body = st.text_area('📄 Текст новости:', height=250, placeholder='Вставьте основной текст новости...')
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
         check_button = st.button('🔍 Проверить новость', use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ============================================
-# ОБРАБОТКА И РЕЗУЛЬТАТЫ
-# ============================================
+# =========================
+# Предсказание
+# =========================
 if check_button:
     if not headline or not body:
-        st.warning('⚠️ Пожалуйста, заполните оба поля: заголовок и текст новости')
+        st.warning('⚠️ Пожалуйста, заполните заголовок и текст новости')
+    elif clf is None or kv is None:
+        st.error('❌ Модель или эмбеддинги не найдены. Поместите файлы в models/.')
     else:
         with st.spinner('🔄 Анализирую новость...'):
             try:
-                # Предобработка
-                headline_clean = preprocess_text(headline, stopwords_list)
-                body_clean = preprocess_text(body, stopwords_list)
-                
-                # Комбинируем
-                body_words = body_clean.split()
-                combined_text = f"{headline_clean} {' '.join(body_words)}"
-                
-                if len(combined_text) < 10:
-                    st.error('❌ Недостаточно текста для анализа. Пожалуйста, введите больше информации.')
+                pred_raw, prob, h_clean, b_clean, rel = predict(headline, body, clf, kv)
+                if pred_raw is None:
+                    st.error('❌ Недостаточно текста после предобработки.')
                 else:
-                    # Векторизация
-                    text_vec = vectorizer.transform([combined_text])
-                    
-                    # Предсказание
-                    prediction = model.predict(text_vec)[0]
-                    probabilities = model.predict_proba(text_vec)[0]
-                    
-                    # Вывод результата
+                    prob_real = float(prob[1])
+                    final_label, reasons = decide_with_rules(prob_real, rel)
+
                     st.markdown("---")
                     st.markdown("### 📊 Результат анализа:")
-                    
-                    if prediction == 1:
-                        # Реальная новость
-                        confidence = probabilities[1] * 100
-                        st.success(f'✅ **РЕАЛЬНАЯ НОВОСТЬ**')
-                        
+
+                    if final_label == 1:
+                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ** (после правил)')
                         st.markdown(
                             f"""
                             <div class='metric-container'>
-                                <div class='metric-value'>{confidence:.1f}%</div>
+                                <div class='metric-value'>{prob_real*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        
-                        st.info("""
-                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
-                        Новость скорее всего является достоверной.
-                        """)
-                        
+                        st.info("Заголовок согласован с содержанием статьи по признакам и фиксированным порогам.")
                     else:
-                        # Фейковая новость
-                        confidence = probabilities[0] * 100
-                        st.error(f'❌ **ФЕЙКОВАЯ НОВОСТЬ**')
-                        
+                        st.error('❌ **НЕСОГЛАСОВАННАЯ / ФЕЙКОВАЯ НОВОСТЬ** (после правил)')
                         st.markdown(
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
-                                <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
+                                <div class='metric-label'>Уверенность "несогласовано"</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        
-                        st.warning("""
-                        **Интерпретация:** Заголовок не соответствует или противоречит содержанию статьи. 
-                        Новость может быть недостоверной или вводить в заблуждение.
-                        """)
-                    
-                    # Дополнительная информация
-                    with st.expander("📈 Подробная информация"):
-                        st.write("**Распределение вероятностей:**")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.metric("Фейковая новость", f"{probabilities[0]:.2f}")
-                        with col2:
-                            st.metric("Реальная новость", f"{probabilities[1]:.2f}")
-                        
-                        st.write("**Длина обработанного текста:**")
-                        st.write(f"- Слов в заголовке: {len(headline_clean.split())}")
-                        st.write(f"- Слов в тексте (использовано): {len(body_words)}")
-                        st.write(f"- Всего слов для анализа: {len(combined_text.split())}")
+                        if reasons:
+                            with st.expander("Почему сработали правила?"):
+                                for r in reasons:
+                                    st.write(f"- {r}")
 
-  
+                    with st.expander("🔗 Семантическая связь заголовок ↔ текст"):
+                        if rel:
+                            c1, c2, c3, c4 = st.columns(4)
+                            c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                            c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                            c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                            c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+
+                        st.markdown("**Тексты после предобработки:**")
+                        st.write(f"- Заголовок: {h_clean}")
+                        show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                        st.write(f"- Текст: {show_body}")
+
+                    with st.expander("🤖 Работа моделей"):
+                        if os.path.exists("assets/fake_news_analysis.png"):
+                            st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_class="default-img")
+                        else:
+                            st.info("Изображение 'assets/fake_news_analysis.png' не найдено.")
             except Exception as e:
-                st.error(f'❌ Произошла ошибка при анализе: {str(e)}')
-                # Графики
-with st.expander("🤖 Работа моделей"):
-    st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_format="default-img")
-    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее важных слов", use_column_width=True, output_format="default-img")
+                st.error(f'❌ Ошибка: {str(e)}')
+
+# =========================
+# Футер
+# =========================
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: #FFFFE0; padding: 1rem 0;'>
+        <p><strong>Детектор фейковых новостей</strong> — Word2Vec + Logistic Regression + фиксированные правила</p>
+        <p style='font-size: 0.9rem;'>Пороговые значения зашиты в приложении и не изменяются пользователем.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
