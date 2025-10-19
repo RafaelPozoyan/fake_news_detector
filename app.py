@@ -340,7 +340,7 @@ with st.sidebar:
 # ============================================
 
 # Заголовок
-st.title('🔍 Детектор фейковых новостей манул')
+st.title('🔍 Детектор фейковых новостей')
 
 st.markdown(
     """
@@ -468,11 +468,11 @@ if check_button:
                         st.write(f"- Слов в заголовке: {len(headline_clean.split())}")
                         st.write(f"- Слов в тексте (использовано): {len(body_words)}")
                         st.write(f"- Всего слов для анализа: {len(combined_text.split())}")
-                    
-                    # Графики
-                    with st.expander("🤖 Работа моделей"):
-                        st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_format="default-img")
 
   
             except Exception as e:
                 st.error(f'❌ Произошла ошибка при анализе: {str(e)}')
+                # Графики
+with st.expander("🤖 Работа моделей"):
+    st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_format="default-img")
+    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее важных слов", use_column_width=True, output_format="default-img")
