@@ -90,6 +90,8 @@ set_styles()
 @st.cache_data
 def load_stopwords():
     from nltk.corpus import stopwords
+
+    nltk.download('stopwords')
     return set(stopwords.words('russian'))
 
 def preprocess_text(text, stopwords_list):
