@@ -239,7 +239,7 @@ def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=
 # Сайдбар
 with st.sidebar:
     logo = Image.open('assets/logo.png')
-    st.image(logo, use_column_width=True, output_format="round-logo")
+    st.image(logo, output_format="round-logo")
 
     st.markdown("---")
     st.markdown(
@@ -376,7 +376,7 @@ with st.expander("Обзор подходов"):
     " В итоге принял решение реализовать проект через ***Word2Vec***, чтобы учитывать контекст.")
     
     st.markdown("---")
-    st.image("assets/models_scores.png", caption="Сравнение моделей", use_column_width=True)
+    st.image("assets/models_scores.png", caption="Сравнение моделей")
 
     st.markdown("При написании кода сравнил ***3 модели***:")
     st.markdown("* Logistic Regression")
@@ -385,10 +385,10 @@ with st.expander("Обзор подходов"):
     st.markdown("Наибольший скор выдала ***Логистическая регрессия***, как видно по графикам.")
 
     st.markdown("---")
-    st.image("assets/text_lenght.png", caption="Распределение длины текстов", use_column_width=True)
+    st.image("assets/text_lenght.png", caption="Распределение длины текстов")
     
     st.markdown("---")
-    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее значимых слов", use_column_width=True)
+    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее значимых слов")
 
 
 
