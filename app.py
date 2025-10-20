@@ -71,15 +71,15 @@ def set_styles():
     }
     
     .stImage.round-logo img {
-        border-radius: 50% !important;
+        border-radius: 50%;
     }
     
     .stImage.default-img img {
-        border-radius: 0 !important;
+        border-radius: 0;
     }
     
     .streamlit-expanderHeader {
-        color: #FFFFE0 !important; font-weight: 600;
+        color: #FFFFE0; font-weight: 600;
     }
     
     </style>
@@ -207,7 +207,7 @@ def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=
     reasons = []
 
     if rel["cosine"] < hard_rules["very_low_cos"]:
-        reasons.append(f"Очень низкая косинусная близость: {rel['cosine']:.3f}")
+        reasons.append(f"Низкая косинусная близость (cosine): {rel['cosine']:.3f}")
         return 0, reasons
     
     if rel["overlap"] <= hard_rules["zero_overlap"]:
@@ -225,14 +225,14 @@ def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=
         soft_ok = False; reasons.append(f"overlap ниже порога ({rel['overlap']:.3f} < {thresholds['overlap_min']})")
     
     if rel["l2"] > thresholds["l2_max"]:
-        soft_ok = False; reasons.append(f"L2(h-b) выше порога ({rel['l2']:.3f} > {thresholds['l2_max']})")
+        soft_ok = False; reasons.append(f"L2 выше порога ({rel['l2']:.3f} > {thresholds['l2_max']})")
 
     if prob_real >= thresholds["proba_real"] and soft_ok:
         return 1, reasons
     else:
     
         if prob_real >= thresholds["proba_real"]:
-            reasons.append(f"Вероятность модели высокая ({prob_real:.2f}), но связи не подтверждены правилами")
+            reasons.append(f"Вероятность модели высокая ({prob_real*100:.1f}%), но связи между заголовком и текстом нет")
     
         return 0, reasons
 
@@ -341,10 +341,10 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
-                        # if reasons:
-                        #     with st.expander("Почему сработали правила?"):
-                        #         for r in reasons:
-                        #             st.write(f"- {r}")
+                        if reasons:
+                            with st.expander("Почему уверенность низкая, а новость фейковая?"):
+                                for r in reasons:
+                                    st.write(f"- {r}")
 
                     with st.expander("Семантическая связь заголовка и основного текста"):
                         if rel:
@@ -386,16 +386,3 @@ with st.expander("Обзор подходов"):
     st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее значимых слов")
 
 
-
-# Футер
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: #FFFFE0; padding: 1rem 0;'>
-        <p><strong>Дипломная работа</strong></p>
-        <p style='font-size: 0.9rem;'>Позоян Рафаэль Овакимович, группа БПМ-22-ПО-3</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
