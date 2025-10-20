@@ -192,11 +192,11 @@ def predict(headline_raw, body_raw, clf_model, kv_model):
 
 # Фиксированные пороги и правила
 DEFAULT_THRESHOLDS = {
-    "proba_real": 0.55,   # базовый порог вероятности класса "реально"
-    "cos_min": 0.20,      # мин косинусной близости
-    "jacc_min": 0.05,     # мин Jaccard
-    "overlap_min": 0.10,  # мин overlap
-    "l2_max": 14.0,       # макс L2(h-b)
+    "proba_real": 0.55,   
+    "cos_min": 0.20,      
+    "jacc_min": 0.05,     
+    "overlap_min": 0.10,  
+    "l2_max": 14.0,       
 }
 HARD_RULES = {
     "very_low_cos": 0.10,
@@ -257,16 +257,16 @@ with st.sidebar:
     st.markdown("---")
     
     if clf is not None and kv is not None:
-        st.markdown("<div style='color:#FFFFE0;'><h4>✅ Статус</h4><p>Модель и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус</h4><p>Модель и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div style='color:#FFFFE0;'><h4>⚠️ Статус</h4><p>Нет модели или эмбеддингов в models/</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус</h4><p>Нет модели или эмбеддингов в models/</p></div>", unsafe_allow_html=True)
 
     st.markdown("---")
     if train_metrics:
         st.markdown(
             f"""
             <div style='color:#FFFFE0;'>
-                <h4>📊 Метрики обучения</h4>
+                <h4>Метрики обучения</h4>
                 <ul>
                     <li><strong>Модель:</strong> {train_metrics.get("best_model_name","LR+W2V")}</li>
                     <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
@@ -279,18 +279,9 @@ with st.sidebar:
         )
 
 # Главный контент
-st.title('🔍 Детектор фейковых новостей')
+st.title('Детектор фейковых новостей')
 
-st.markdown(
-    """
-    <div style='text-align: center; color: #FFFFE0; font-size: 1.2rem; margin-bottom: 2rem;'>
-        Модель оценивает семантическую согласованность заголовка и текста новости.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-with st.expander("📖 Как пользоваться?", expanded=False):
+with st.expander("Как пользоваться?", expanded=False):
     st.markdown("""
     1. Введите заголовок новости в первое поле
     2. Вставьте текст новости во второе поле
@@ -301,12 +292,12 @@ with st.expander("📖 Как пользоваться?", expanded=False):
 st.markdown("<br>", unsafe_allow_html=True)
 
 with st.container():
-    headline = st.text_input('📰 Заголовок новости:', placeholder='Например: Банк России снизил ключевую ставку до 17%')
-    body = st.text_area('📄 Текст новости:', height=250, placeholder='Вставьте основной текст новости...')
+    headline = st.text_input('Заголовок новости:', placeholder='Например: Банк России снизил ключевую ставку до 17%')
+    body = st.text_area('Текст новости:', height=250, placeholder='Вставьте основной текст новости...')
     c1, c2, c3 = st.columns([1, 2, 1])
     
     with c2:
-        check_button = st.button('🔍 Проверить новость', use_container_width=True)
+        check_button = st.button('Проверить новость', use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -314,26 +305,26 @@ st.markdown("<br>", unsafe_allow_html=True)
 if check_button:
     
     if not headline or not body:
-        st.warning('⚠️ Пожалуйста, заполните заголовок и текст новости')
+        st.warning('Заполните заголовок и текст новости')
     
     elif clf is None or kv is None:
-        st.error('❌ Модель или эмбеддинги не найдены. Поместите файлы в models/.')
+        st.error('Модель или эмбеддинги не найдены.')
     
     else:
-        with st.spinner('🔄 Анализирую новость...'):
+        with st.spinner('Анализирую новость...'):
             try:
                 pred_raw, prob, h_clean, b_clean, rel = predict(headline, body, clf, kv)
                 if pred_raw is None:
-                    st.error('❌ Недостаточно текста после предобработки.')
+                    st.error('Недостаточно текста после предобработки.')
                 else:
                     prob_real = float(prob[1])
                     final_label, reasons = decide_with_rules(prob_real, rel)
 
                     st.markdown("---")
-                    st.markdown("### 📊 Результат анализа:")
+                    st.markdown("### Результат анализа:")
 
                     if final_label == 1:
-                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ** (после правил)')
+                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container'>
@@ -343,9 +334,9 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
-                        st.info("Заголовок согласован с содержанием статьи по признакам и фиксированным порогам.")
+                        st.info("Заголовок согласован с содержанием статьи.")
                     else:
-                        st.error('❌ **НЕСОГЛАСОВАННАЯ / ФЕЙКОВАЯ НОВОСТЬ** (после правил)')
+                        st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
@@ -360,7 +351,7 @@ if check_button:
                                 for r in reasons:
                                     st.write(f"- {r}")
 
-                    with st.expander("🔗 Семантическая связь заголовок ↔ текст"):
+                    with st.expander("Семантическая связь заголовка и основного текста"):
                         if rel:
                             c1, c2, c3, c4 = st.columns(4)
                             c1.metric("Cosine", f"{rel['cosine']:.3f}")
@@ -371,16 +362,35 @@ if check_button:
                         st.markdown("**Тексты после предобработки:**")
                         st.write(f"- Заголовок: {h_clean}")
                         show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        st.write(f"- Текст: {show_body}")
+                        st.write(f"- Текст: {show_body}")                            
 
-                    # with st.expander("🤖 Работа моделей"):
-                    #     if os.path.exists("assets/fake_news_analysis.png"):
-                    #         st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_class="default-img")
-                    #     else:
-                    #         st.info("Изображение 'assets/fake_news_analysis.png' не найдено.")
-            
             except Exception as e:
                 st.error(f'❌ Ошибка: {str(e)}')
+
+with st.expander("Обзор подходов"):
+    st.info("Векторизация через TF-IDF:")
+
+    st.markdown("В начале использовал векторизацию через ***TF-IDF*** для оценки важности слов в датасете. Score был примерно ***0.958***," \
+    " но не удавалось проверить согласованность заголовка и основного текста новости. При указании правильного текста инфоповода и изменении" \
+    " заголовка, модель все равно воспринимала новость, как правдивую, а все предсказания были с маленькой уверенностью." \
+    " В итоге принял решение реализовать проект через ***Word2Vec***, чтобы учитывать контекст.")
+    
+    st.markdown("---")
+    st.image("assets/models_scores.png", caption="Сравнение моделей", use_column_width=True)
+
+    st.markdown("При написании кода сравнил ***3 модели***:")
+    st.markdown("* Logistic Regression")
+    st.markdown("* Naive Bayes")
+    st.markdown("* Random Forest")
+    st.markdown("Наибольший скор выдала ***Логистическая регрессия***, как видно по графикам.")
+
+    st.markdown("---")
+    st.image("assets/text_lenght.png", caption="Распределение длины текстов", use_column_width=True)
+    
+    st.markdown("---")
+    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее значимых слов", use_column_width=True)
+
+
 
 # Футер
 st.markdown("<br><br>", unsafe_allow_html=True)
