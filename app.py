@@ -371,11 +371,11 @@ if check_button:
                         show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
                         st.write(f"- Текст: {show_body}")
 
-                    with st.expander("🤖 Работа моделей"):
-                        if os.path.exists("assets/fake_news_analysis.png"):
-                            st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_class="default-img")
-                        else:
-                            st.info("Изображение 'assets/fake_news_analysis.png' не найдено.")
+                    # with st.expander("🤖 Работа моделей"):
+                    #     if os.path.exists("assets/fake_news_analysis.png"):
+                    #         st.image("assets/fake_news_analysis.png", caption="Сравнение моделей", use_column_width=True, output_class="default-img")
+                    #     else:
+                    #         st.info("Изображение 'assets/fake_news_analysis.png' не найдено.")
             
             except Exception as e:
                 st.error(f'❌ Ошибка: {str(e)}')
