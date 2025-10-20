@@ -266,12 +266,11 @@ with st.sidebar:
         st.markdown(
             f"""
             <div style='color:#FFFFE0;'>
-                <h4>Метрики обучения</h4>
+                <h4>Метрики:</h4>
                 <ul>
-                    <li><strong>Модель:</strong> {train_metrics.get("best_model_name","LR+W2V")}</li>
+                    <li><strong>Модель:</strong> {train_metrics.get("best_model_name","Logistic Regression + Word2Vec")}</li>
                     <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
                     <li><strong>Val F1:</strong> {train_metrics.get("val_f1","-"):.3f}</li>
-                    <li><strong>Dim:</strong> {train_metrics.get("vector_size","-")}</li>
                 </ul>
             </div>
             """,
@@ -286,14 +285,13 @@ with st.expander("Как пользоваться?", expanded=False):
     1. Введите заголовок новости в первое поле
     2. Вставьте текст новости во второе поле
     3. Нажмите кнопку **Проверить новость**
-    4. Получите результат с процентом уверенности
     """)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 with st.container():
-    headline = st.text_input('Заголовок новости:', placeholder='Например: Банк России снизил ключевую ставку до 17%')
-    body = st.text_area('Текст новости:', height=250, placeholder='Вставьте основной текст новости...')
+    headline = st.text_input('Заголовок новости:', placeholder='Вставьте заголовок новости')
+    body = st.text_area('Текст новости:', height=250, placeholder='Вставьте основной текст новости')
     c1, c2, c3 = st.columns([1, 2, 1])
     
     with c2:
@@ -306,9 +304,6 @@ if check_button:
     
     if not headline or not body:
         st.warning('Заполните заголовок и текст новости')
-    
-    elif clf is None or kv is None:
-        st.error('Модель или эмбеддинги не найдены.')
     
     else:
         with st.spinner('Анализирую новость...'):
