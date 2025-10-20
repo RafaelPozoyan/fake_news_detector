@@ -203,38 +203,38 @@ HARD_RULES = {
     "zero_overlap": 0.00,
 }
 
-# def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=HARD_RULES):
-#     reasons = []
+def decide_with_rules(prob_real, rel, thresholds=DEFAULT_THRESHOLDS, hard_rules=HARD_RULES):
+    reasons = []
 
-#     if rel["cosine"] < hard_rules["very_low_cos"]:
-#         reasons.append(f"Очень низкая косинусная близость: {rel['cosine']:.3f}")
-#         return 0, reasons
+    if rel["cosine"] < hard_rules["very_low_cos"]:
+        reasons.append(f"Очень низкая косинусная близость: {rel['cosine']:.3f}")
+        return 0, reasons
     
-#     if rel["overlap"] <= hard_rules["zero_overlap"]:
-#         reasons.append("В заголовке нет слов, встречающихся в тексте (overlap=0)")
-#         return 0, reasons
+    if rel["overlap"] <= hard_rules["zero_overlap"]:
+        reasons.append("В заголовке нет слов, встречающихся в тексте (overlap=0)")
+        return 0, reasons
 
-#     soft_ok = True
-#     if rel["cosine"] < thresholds["cos_min"]:
-#         soft_ok = False; reasons.append(f"cosine ниже порога ({rel['cosine']:.3f} < {thresholds['cos_min']})")
+    soft_ok = True
+    if rel["cosine"] < thresholds["cos_min"]:
+        soft_ok = False; reasons.append(f"cosine ниже порога ({rel['cosine']:.3f} < {thresholds['cos_min']})")
     
-#     if rel["jaccard"] < thresholds["jacc_min"]:
-#         soft_ok = False; reasons.append(f"Jaccard ниже порога ({rel['jaccard']:.3f} < {thresholds['jacc_min']})")
+    if rel["jaccard"] < thresholds["jacc_min"]:
+        soft_ok = False; reasons.append(f"Jaccard ниже порога ({rel['jaccard']:.3f} < {thresholds['jacc_min']})")
     
-#     if rel["overlap"] < thresholds["overlap_min"]:
-#         soft_ok = False; reasons.append(f"overlap ниже порога ({rel['overlap']:.3f} < {thresholds['overlap_min']})")
+    if rel["overlap"] < thresholds["overlap_min"]:
+        soft_ok = False; reasons.append(f"overlap ниже порога ({rel['overlap']:.3f} < {thresholds['overlap_min']})")
     
-#     if rel["l2"] > thresholds["l2_max"]:
-#         soft_ok = False; reasons.append(f"L2(h-b) выше порога ({rel['l2']:.3f} > {thresholds['l2_max']})")
+    if rel["l2"] > thresholds["l2_max"]:
+        soft_ok = False; reasons.append(f"L2(h-b) выше порога ({rel['l2']:.3f} > {thresholds['l2_max']})")
 
-#     if prob_real >= thresholds["proba_real"] and soft_ok:
-#         return 1, reasons
-#     else:
+    if prob_real >= thresholds["proba_real"] and soft_ok:
+        return 1, reasons
+    else:
     
-#         if prob_real >= thresholds["proba_real"]:
-#             reasons.append(f"Вероятность модели высокая ({prob_real:.2f}), но связи не подтверждены правилами")
+        if prob_real >= thresholds["proba_real"]:
+            reasons.append(f"Вероятность модели высокая ({prob_real:.2f}), но связи не подтверждены правилами")
     
-#         return 0, reasons
+        return 0, reasons
 
 # Сайдбар
 with st.sidebar:
@@ -341,7 +341,7 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
-                                <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'>Уверенность </div>
                             </div>
                             """,
                             unsafe_allow_html=True
