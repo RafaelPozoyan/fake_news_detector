@@ -59,7 +59,7 @@ def set_styles():
     }
                 
     .metric-container { 
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 1.5rem; text-align: center; margin: 1rem 0; 
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 0.1rem; text-align: center; margin: 1rem 0; 
     }
     
     .metric-value {
@@ -67,7 +67,7 @@ def set_styles():
     }
     
     .metric-label {
-        font-size: 1rem; color: #64748b; margin-top: 0.5rem;
+        font-size: 1rem; color: #64748b; margin-top: 0.3rem;
     }
     
     .stImage.round-logo img {
@@ -319,28 +319,87 @@ if check_button:
                     st.markdown("### Результат анализа:")
 
                     if final_label == 1:
-                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
-                        st.markdown(
-                            f"""
-                            <div class='metric-container'>
-                                <div class='metric-value'>{prob_real*100:.1f}%</div>
-                                <div class='metric-label'>Уверенность</div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-                        st.info("Заголовок согласован с содержанием статьи.")
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container'>
+                                    <div class='metric-label'>Использовалось: Logistic Regression + W2V</div>
+                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность</div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            st.info("Заголовок согласован с содержанием статьи.")
+
+                        with col2:
+                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container'>
+                                    <div class='metric-label'>Использовалось: Naive Bayes + W2V</div>
+                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность</div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            st.info("Заголовок согласован с содержанием статьи.")
+
+                        with col3:
+                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container'>
+                                    <div class='metric-label'>Использовалось: Random Forest + W2V</div>
+                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность</div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            st.info("Заголовок согласован с содержанием статьи.")
+                        
                     else:
-                        st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
-                        st.markdown(
-                            f"""
-                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
-                                <div class='metric-label'>Уверенность </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                    <div class='metric-label'>Использовалось: Logistic Regression + W2V</div>
+                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        with col2:
+                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                    <div class='metric-label'>Использовалось: Naive Bayes + W2V</div>
+                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                        with col3:
+                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                            st.markdown(
+                                f"""
+                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                    <div class='metric-label'>Использовалось: Random Forest + W2V</div>
+                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
+                                    <div class='metric-label'>Уверенность </div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
                         if reasons:
                             with st.expander("Почему уверенность низкая, а новость фейковая?"):
                                 for r in reasons:
@@ -363,7 +422,7 @@ if check_button:
                 st.error(f'❌ Ошибка: {str(e)}')
 
 with st.expander("Обзор подходов"):
-    st.info("Векторизация через TF-IDF:")
+    st.info("Векторизация через TF-IDF")
 
     st.markdown("В начале использовал векторизацию через ***TF-IDF*** для оценки важности слов в датасете. Score был примерно ***0.958***," \
     " но не удавалось проверить согласованность заголовка и основного текста новости. При указании правильного текста инфоповода и изменении" \
