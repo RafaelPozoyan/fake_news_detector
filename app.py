@@ -315,114 +315,113 @@ if check_button:
                 # prediction для каждой модели
                 pred_lr, prob_lr, h_clean, b_clean, rel = predict(headline, body, clf_lr, kv)
                 pred_rf, prob_rf, _, _, _ = predict(headline, body, clf_rf, kv)
-
+                
+                st.markdown("### Word2Vec")
                 col1, col2 = st.columns(2)
 
                 # Logistic Regression
                 with col1:
-                    st.markdown("### Logistic Regression")
                     if pred_lr == 1:
                         st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container'>
-                                <div class='metric-label'>Logistic Regression + W2V</div>
+                                <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        with st.expander("Семантическая связь заголовка и основного текста"):
-                            if rel:
-                                c1, c2, c3, c4 = st.columns(4)
-                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+                        # with st.expander("Семантическая связь заголовка и основного текста"):
+                        #     if rel:
+                        #         c1, c2, c3, c4 = st.columns(4)
+                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                            st.markdown("**Тексты после предобработки:**")
-                            st.write(f"- Заголовок: {h_clean}")
-                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                            st.write(f"- Текст: {show_body}") 
+                        #     st.markdown("**Тексты после предобработки:**")
+                        #     st.write(f"- Заголовок: {h_clean}")
+                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                        #     st.write(f"- Текст: {show_body}") 
 
                     else:
                         st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                <div class='metric-label'>Logistic Regression + W2V</div>
+                                <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        with st.expander("Семантическая связь заголовка и основного текста"):
-                            if rel:
-                                c1, c2, c3, c4 = st.columns(4)
-                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+                        # with st.expander("Семантическая связь заголовка и основного текста"):
+                        #     if rel:
+                        #         c1, c2, c3, c4 = st.columns(4)
+                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                            st.markdown("**Тексты после предобработки:**")
-                            st.write(f"- Заголовок: {h_clean}")
-                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                            st.write(f"- Текст: {show_body}") 
+                        #     st.markdown("**Тексты после предобработки:**")
+                        #     st.write(f"- Заголовок: {h_clean}")
+                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                        #     st.write(f"- Текст: {show_body}") 
 
                 # Random Forest
                 with col2:
-                    st.markdown("### Random Forest")
                     if pred_rf == 1:
                         st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container'>
-                                <div class='metric-label'>Random Forest + W2V</div>
+                                <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        with st.expander("Семантическая связь заголовка и основного текста"):
-                            if rel:
-                                c1, c2, c3, c4 = st.columns(4)
-                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+                        # with st.expander("Семантическая связь заголовка и основного текста"):
+                        #     if rel:
+                        #         c1, c2, c3, c4 = st.columns(4)
+                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                            st.markdown("**Тексты после предобработки:**")
-                            st.write(f"- Заголовок: {h_clean}")
-                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                            st.write(f"- Текст: {show_body}")                        
+                        #     st.markdown("**Тексты после предобработки:**")
+                        #     st.write(f"- Заголовок: {h_clean}")
+                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                        #     st.write(f"- Текст: {show_body}")                        
                         
                     else:
                         st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                <div class='metric-label'>Random Forest + W2V</div>
+                                <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        with st.expander("Семантическая связь заголовка и основного текста"):
-                            if rel:
-                                c1, c2, c3, c4 = st.columns(4)
-                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+                        # with st.expander("Семантическая связь заголовка и основного текста"):
+                        #     if rel:
+                        #         c1, c2, c3, c4 = st.columns(4)
+                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                            st.markdown("**Тексты после предобработки:**")
-                            st.write(f"- Заголовок: {h_clean}")
-                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                            st.write(f"- Текст: {show_body}")
+                        #     st.markdown("**Тексты после предобработки:**")
+                        #     st.write(f"- Заголовок: {h_clean}")
+                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                        #     st.write(f"- Текст: {show_body}")
 
                     # if reasons:
                     #     with st.expander("Почему уверенность низкая, а новость фейковая?"):
