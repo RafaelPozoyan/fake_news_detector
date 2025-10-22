@@ -128,6 +128,25 @@ def load_artifacts():
 
 clf, kv, train_metrics = load_artifacts()
 
+# =========================
+# демо
+def load_model():
+    """Загрузка обученной модели и векторизатора"""
+    try:
+        model_randfor_tf = pickle.load(open('models/Random Forest_model_tf.pkl', 'rb'))
+        model_naibayes_tf = pickle.load(open('models/Naive Bayes_model_tf.pkl', 'rb'))
+        model_logreg_tf = pickle.load(open('models/Logistic Regression_model_tf.pkl', 'rb'))
+        vectorizer_tf = pickle.load(open('models/tfidf_vectorizer_tf.pkl', 'rb'))
+        return model_randfor_tf, model_naibayes_tf, model_logreg_tf, vectorizer_tf, True
+    except FileNotFoundError:
+        return None, None, False
+
+# Загружаем модель
+model_randfor_tf, model_naibayes_tf, model_logreg_tf, vectorizer_tf, model_loaded = load_model()
+stopwords_list = load_stopwords()
+# демо
+# =========================
+
 # Функции признаков
 def doc_vector(tokens, kv_model):
     vecs = [kv_model[w] for w in tokens if w in kv_model]
@@ -256,10 +275,15 @@ with st.sidebar:
 
     st.markdown("---")
     
-    if clf is not None and kv is not None:
-        st.markdown("<div style='color:#FFFFE0;'><h4>Статус</h4><p>Модель и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
+    if kv is not None:
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус Word2Vec:</h4><p>Модели и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div style='color:#FFFFE0;'><h4>Статус</h4><p>Нет модели или эмбеддингов в models/</p></div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус Word2Vec:</h4><p>Нет моделей или эмбеддингов в models</p></div>", unsafe_allow_html=True)
+
+    if model_loaded:
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус TF-IDF:</h4><p>Модели и эмбеддинги загружены</p></div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<div style='color:#FFFFE0;'><h4>Статус TF-IDF:</h4><p>Нет моделей или эмбеддингов в models</p></div>", unsafe_allow_html=True)
 
     st.markdown("---")
     if train_metrics:
@@ -316,6 +340,9 @@ if check_button:
                 pred_lr, prob_lr, h_clean, b_clean, rel = predict(headline, body, clf_lr, kv)
                 pred_rf, prob_rf, _, _, _ = predict(headline, body, clf_rf, kv)
                 
+                # =================================
+                # Вывод результатов работы Word2Vec
+                # =================================
                 st.markdown("### Word2Vec")
                 col1, col2 = st.columns(2)
 
@@ -352,7 +379,7 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Logistic Regression</div>
-                                <div class='metric-value'>{(1-prob_lr[1])*100:.1f}%</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
@@ -404,7 +431,7 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Random Forest</div>
-                                <div class='metric-value'>{(1-prob_rf[1])*100:.1f}%</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
                             </div>
                             """,
@@ -428,7 +455,154 @@ if check_button:
                     #         for r in reasons:
                     #             st.write(f"- {r}")
 
-                            
+                # =================================
+                # Вывод результатов TF-IDF
+                # =================================
+
+                headline_clean = preprocess_text(headline, stopwords_list)
+                body_clean = preprocess_text(body, stopwords_list)
+                
+                # Комбинируем
+                body_words = body_clean.split()
+                combined_text = f"{headline_clean} {' '.join(body_words)}"
+
+                text_vec = vectorizer_tf.transform([combined_text])
+                
+                # предикты на random forest
+                prediction_rf = model_randfor_tf.predict(text_vec)[0]
+                probabilities_rf = model_randfor_tf.predict_proba(text_vec)[0]
+
+                # предикты на naive bayes
+                prediction_nb = model_naibayes_tf.predict(text_vec)[0]
+                probabilities_nb = model_naibayes_tf.predict_proba(text_vec)[0]  
+
+                # предикты на logistic regression
+                prediction_lr = model_logreg_tf.predict(text_vec)[0]
+                probabilities_lr = model_logreg_tf.predict_proba(text_vec)[0]  
+
+                st.markdown("### TF-IDF")
+
+                col1, col2, col3 = st.columns(3)
+
+                # random forest
+                with col1:
+                    if prediction_rf == 1:
+                        # Реальная новость
+                        confidence = probabilities_rf[1] * 100
+                        st.success(f'✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container'>
+                                <div class='metric-label'>Random Forest</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        
+                        st.info("""
+                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
+                        Новость скорее всего является достоверной.
+                        """)
+                        
+                    else:
+                        # Фейковая новость
+                        confidence = probabilities_rf[0] * 100
+                        st.error(f'❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                <div class='metric-label'>Random Forest</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                # naive bayes
+                with col2:
+                    if prediction_nb == 1:
+                        # Реальная новость
+                        confidence = probabilities_nb[1] * 100
+                        st.success(f'✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container'>
+                                <div class='metric-label'>Naive Bayes</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        
+                        st.info("""
+                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
+                        Новость скорее всего является достоверной.
+                        """)
+                        
+                    else:
+                        # Фейковая новость
+                        confidence = probabilities_nb[0] * 100
+                        st.error(f'❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                <div class='metric-label'>Naive Bayes</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                # logistic regression
+                with col3:
+                    if prediction_lr == 1:
+                        # Реальная новость
+                        confidence = probabilities_lr[1] * 100
+                        st.success(f'✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container'>
+                                <div class='metric-label'>Logistic Regression</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        
+                        st.info("""
+                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
+                        Новость скорее всего является достоверной.
+                        """)
+                        
+                    else:
+                        # Фейковая новость
+                        confidence = probabilities_lr[0] * 100
+                        st.error(f'❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                        
+                        st.markdown(
+                            f"""
+                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                <div class='metric-label'>Logistic Regression</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                    
+
+
 
             except Exception as e:
                 st.error(f'❌ Ошибка: {str(e)}')
