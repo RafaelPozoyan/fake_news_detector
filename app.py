@@ -213,7 +213,7 @@ def predict(headline_raw, body_raw, clf_model, kv_model):
 DEFAULT_THRESHOLDS = {
     "proba_real": 0.55,   
     "cos_min": 0.20,      
-    "jacc_min": 0.05,     
+    "jacc_min": 0.005,     
     "overlap_min": 0.10,  
     "l2_max": 14.0,       
 }
@@ -337,8 +337,12 @@ if check_button:
                     clf_rf = pickle.load(f)
 
                 # prediction для каждой модели
-                pred_lr, prob_lr, h_clean, b_clean, rel = predict(headline, body, clf_lr, kv)
-                pred_rf, prob_rf, _, _, _ = predict(headline, body, clf_rf, kv)
+                pred_lr, prob_lr, h_clean, b_clean, rel_lr = predict(headline, body, clf_lr, kv)
+                pred_rf, prob_rf, _, _, rel_rf = predict(headline, body, clf_rf, kv)
+
+                # Проверка бизнес-правил
+                final_label_lr, reasons_lr = decide_with_rules(prob_lr[1], rel_lr)
+                final_label_rf, reasons_rf = decide_with_rules(prob_rf[1], rel_rf)
                 
                 # =================================
                 # Вывод результатов работы Word2Vec
@@ -348,7 +352,7 @@ if check_button:
 
                 # Logistic Regression
                 with col1:
-                    if pred_lr == 1:
+                    if final_label_lr == 1:
                         st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
@@ -360,6 +364,7 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
+                        
                         # with st.expander("Семантическая связь заголовка и основного текста"):
                         #     if rel:
                         #         c1, c2, c3, c4 = st.columns(4)
@@ -385,6 +390,10 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
+                        if reasons_lr:
+                            with st.expander("Почему сработали бизнес-правила?"):
+                                for r in reasons_lr:
+                                    st.write(f"- {r}")
                         # with st.expander("Семантическая связь заголовка и основного текста"):
                         #     if rel:
                         #         c1, c2, c3, c4 = st.columns(4)
@@ -400,7 +409,7 @@ if check_button:
 
                 # Random Forest
                 with col2:
-                    if pred_rf == 1:
+                    if final_label_rf == 1:
                         st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
                         st.markdown(
                             f"""
@@ -437,6 +446,10 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
+                        if reasons_rf:
+                            with st.expander("Почему сработали бизнес-правила?"):
+                                for r in reasons_rf:
+                                    st.write(f"- {r}")
                         # with st.expander("Семантическая связь заголовка и основного текста"):
                         #     if rel:
                         #         c1, c2, c3, c4 = st.columns(4)
