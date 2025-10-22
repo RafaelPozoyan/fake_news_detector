@@ -1,5 +1,11 @@
 {
-  "best_model_name": "Logistic Regression",
-  "val_accuracy": 0.9546485260770975,
-  "val_f1": 0.9546279923782643
+  "Logistic Regression": {
+    "val_acc": 0.9546485260770975
+  },
+  "Naive Bayes": {
+    "val_acc": 0.9387755102040817
+  },
+  "Random Forest": {
+    "val_acc": 0.9217687074829932
+  }
 }

@@ -6,7 +6,10 @@ import streamlit as st
 from PIL import Image
 from gensim.models import KeyedVectors
 import nltk
+import json
 
+with open("results/metrics/metrics.json", "r", encoding="utf-8") as f:
+    metrics = json.load(f)
 
 st.set_page_config(page_title="Детектор фейковых новостей", page_icon="🔍", layout="wide")
 
@@ -59,15 +62,15 @@ def set_styles():
     }
                 
     .metric-container { 
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 0.1rem; text-align: center; margin: 1rem 0; 
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 0.1rem; text-align: center; margin: 0.1rem; 
     }
     
     .metric-value {
-        font-size: 2.5rem; font-weight: 700; color: #0369a1;
+        font-size: 2.5rem; font-weight: 700; color: #0369a1; margin-top: 0.1rem;
     }
     
     .metric-label {
-        font-size: 1rem; color: #64748b; margin-top: 0.3rem;
+        font-size: 1rem; color: #64748b;
     }
     
     .stImage.round-logo img {
@@ -128,10 +131,9 @@ def load_artifacts():
 
 clf, kv, train_metrics = load_artifacts()
 
-# =========================
-# демо
+
 def load_model():
-    """Загрузка обученной модели и векторизатора"""
+    """Загрузка обученных моделей и векторизатора"""
     try:
         model_randfor_tf = pickle.load(open('models/Random Forest_model_tf.pkl', 'rb'))
         model_naibayes_tf = pickle.load(open('models/Naive Bayes_model_tf.pkl', 'rb'))
@@ -144,8 +146,6 @@ def load_model():
 # Загружаем модель
 model_randfor_tf, model_naibayes_tf, model_logreg_tf, vectorizer_tf, model_loaded = load_model()
 stopwords_list = load_stopwords()
-# демо
-# =========================
 
 # Функции признаков
 def doc_vector(tokens, kv_model):
@@ -286,33 +286,49 @@ with st.sidebar:
         st.markdown("<div style='color:#FFFFE0;'><h4>Статус TF-IDF:</h4><p>Нет моделей или эмбеддингов в models</p></div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    if train_metrics:
-        st.markdown(
-            f"""
-            <div style='color:#FFFFE0;'>
-                <h4>Метрики:</h4>
-                <ul>
-                    <li><strong>Модель:</strong> {train_metrics.get("best_model_name","Logistic Regression + Word2Vec")}</li>
-                    <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
-                    <li><strong>Val F1:</strong> {train_metrics.get("val_f1","-"):.3f}</li>
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # if train_metrics:
+    #     st.markdown(
+    #         f"""
+    #         <div style='color:#FFFFE0;'>
+    #             <h4>Метрики:</h4>
+    #             <ul>
+    #                 <li><strong>Модель:</strong> {train_metrics.get("best_model_name","Logistic Regression + Word2Vec")}</li>
+    #                 <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
+    #                 <li><strong>Val F1:</strong> {train_metrics.get("val_f1","-"):.3f}</li>
+    #             </ul>
+    #         </div>
+    #         """,
+    #         unsafe_allow_html=True
+    #     )
 
 # Главный контент
 st.title('Детектор фейковых новостей')
 
+st.markdown("""
+    <style>
+    div[data-testid="stExpander"] div[role="button"] {
+        background-color: #2e86de;
+        color: white;
+        border-radius: 5px;
+    }
+    div[data-testid="stExpander"] div[role="region"] {
+        background-color: #dff9fb;
+    }
+    </style>
+""", unsafe_allow_html=True)
 with st.expander("Как пользоваться?", expanded=False):
-    st.markdown("""
+    st.markdown("""<div style='color:#FFFFE0;'>
     1. Введите заголовок новости в первое поле
+    </div>""", unsafe_allow_html=True)
+    st.markdown("""<div style='color:#FFFFE0;'>
     2. Вставьте текст новости во второе поле
-    3. Нажмите кнопку **Проверить новость**
-    """)
+    </div>""", unsafe_allow_html=True)
+    st.markdown("""<div style='color:#FFFFE0;'>
+    3. Нажмите кнопку "Проверить новость"
+    </div>""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-
+ 
 with st.container():
     headline = st.text_input('Заголовок новости:', placeholder='Вставьте заголовок новости')
     body = st.text_area('Текст новости:', height=250, placeholder='Вставьте основной текст новости')
@@ -326,6 +342,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # Предсказание
 
 if check_button:
+    st.markdown("---")
     if not headline or not body:
         st.warning('⚠️ Пожалуйста, заполните заголовок и текст новости')
     else:
@@ -463,10 +480,6 @@ if check_button:
                         #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
                         #     st.write(f"- Текст: {show_body}")
 
-                    # if reasons:
-                    #     with st.expander("Почему уверенность низкая, а новость фейковая?"):
-                    #         for r in reasons:
-                    #             st.write(f"- {r}")
 
                 # =================================
                 # Вывод результатов TF-IDF
@@ -510,15 +523,11 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        
-                        st.info("""
-                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
-                        Новость скорее всего является достоверной.
-                        """)
                         
                     else:
                         # Фейковая новость
@@ -531,6 +540,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -549,15 +559,11 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
-                        )
-                        
-                        st.info("""
-                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
-                        Новость скорее всего является достоверной.
-                        """)
+                        )                        
                         
                     else:
                         # Фейковая новость
@@ -570,6 +576,7 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -588,15 +595,11 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
-                        
-                        st.info("""
-                        **Интерпретация:** Заголовок соответствует содержанию статьи. 
-                        Новость скорее всего является достоверной.
-                        """)
                         
                     else:
                         # Фейковая новость
@@ -609,6 +612,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -619,6 +623,8 @@ if check_button:
 
             except Exception as e:
                 st.error(f'❌ Ошибка: {str(e)}')
+ 
+st.markdown("---")
 
 with st.expander("Обзор подходов"):
     st.info("Векторизация через TF-IDF")
