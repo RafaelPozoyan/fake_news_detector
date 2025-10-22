@@ -10,6 +10,8 @@ import json
 
 with open("results/metrics/metrics.json", "r", encoding="utf-8") as f:
     metrics = json.load(f)
+with open("results/metrics/metrics_w2v.json", "r", encoding="utf-8") as f:
+    metrics_w2v = json.load(f)
 
 st.set_page_config(page_title="Детектор фейковых новостей", page_icon="🔍", layout="wide")
 
@@ -377,6 +379,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -403,6 +406,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -434,6 +438,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -459,6 +464,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
