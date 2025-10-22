@@ -300,123 +300,136 @@ with st.container():
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Предсказание
+
 if check_button:
-    
     if not headline or not body:
-        st.warning('Заполните заголовок и текст новости')
-    
+        st.warning('⚠️ Пожалуйста, заполните заголовок и текст новости')
     else:
-        with st.spinner('Анализирую новость...'):
+        with st.spinner('🔄 Анализирую новость...'):
             try:
-                pred_raw, prob, h_clean, b_clean, rel = predict(headline, body, clf, kv)
-                if pred_raw is None:
-                    st.error('Недостаточно текста после предобработки.')
-                else:
-                    prob_real = float(prob[1])
-                    final_label, reasons = decide_with_rules(prob_real, rel)
+                with open("models/logisticregression_model.pkl", "rb") as f:
+                    clf_lr = pickle.load(f)
+                with open("models/randomforest_model.pkl", "rb") as f:
+                    clf_rf = pickle.load(f)
 
-                    st.markdown("---")
-                    st.markdown("### Результат анализа:")
+                # prediction для каждой модели
+                pred_lr, prob_lr, h_clean, b_clean, rel = predict(headline, body, clf_lr, kv)
+                pred_rf, prob_rf, _, _, _ = predict(headline, body, clf_rf, kv)
 
-                    if final_label == 1:
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container'>
-                                    <div class='metric-label'>Использовалось: Logistic Regression + W2V</div>
-                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность</div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                            st.info("Заголовок согласован с содержанием статьи.")
+                col1, col2 = st.columns(2)
 
-                        with col2:
-                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container'>
-                                    <div class='metric-label'>Использовалось: Naive Bayes + W2V</div>
-                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность</div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                            st.info("Заголовок согласован с содержанием статьи.")
+                # Logistic Regression
+                with col1:
+                    st.markdown("### Logistic Regression")
+                    if pred_lr == 1:
+                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                        st.markdown(
+                            f"""
+                            <div class='metric-container'>
+                                <div class='metric-label'>Logistic Regression + W2V</div>
+                                <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        with st.expander("Семантическая связь заголовка и основного текста"):
+                            if rel:
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                        with col3:
-                            st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container'>
-                                    <div class='metric-label'>Использовалось: Random Forest + W2V</div>
-                                    <div class='metric-value'>{prob_real*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность</div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                            st.info("Заголовок согласован с содержанием статьи.")
+                            st.markdown("**Тексты после предобработки:**")
+                            st.write(f"- Заголовок: {h_clean}")
+                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                            st.write(f"- Текст: {show_body}") 
+
+                    else:
+                        st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                        st.markdown(
+                            f"""
+                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                <div class='metric-label'>Logistic Regression + W2V</div>
+                                <div class='metric-value'>{(1-prob_lr[1])*100:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        with st.expander("Семантическая связь заголовка и основного текста"):
+                            if rel:
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+
+                            st.markdown("**Тексты после предобработки:**")
+                            st.write(f"- Заголовок: {h_clean}")
+                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                            st.write(f"- Текст: {show_body}") 
+
+                # Random Forest
+                with col2:
+                    st.markdown("### Random Forest")
+                    if pred_rf == 1:
+                        st.success('✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+                        st.markdown(
+                            f"""
+                            <div class='metric-container'>
+                                <div class='metric-label'>Random Forest + W2V</div>
+                                <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        with st.expander("Семантическая связь заголовка и основного текста"):
+                            if rel:
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+
+                            st.markdown("**Тексты после предобработки:**")
+                            st.write(f"- Заголовок: {h_clean}")
+                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                            st.write(f"- Текст: {show_body}")                        
                         
                     else:
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                    <div class='metric-label'>Использовалось: Logistic Regression + W2V</div>
-                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                        with col2:
-                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                    <div class='metric-label'>Использовалось: Naive Bayes + W2V</div>
-                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                        with col3:
-                            st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
-                            st.markdown(
-                                f"""
-                                <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
-                                    <div class='metric-label'>Использовалось: Random Forest + W2V</div>
-                                    <div class='metric-value' style='color: #b91c1c;'>{(1-prob_real)*100:.1f}%</div>
-                                    <div class='metric-label'>Уверенность </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
-                        if reasons:
-                            with st.expander("Почему уверенность низкая, а новость фейковая?"):
-                                for r in reasons:
-                                    st.write(f"- {r}")
+                        st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                        st.markdown(
+                            f"""
+                            <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
+                                <div class='metric-label'>Random Forest + W2V</div>
+                                <div class='metric-value'>{(1-prob_rf[1])*100:.1f}%</div>
+                                <div class='metric-label'>Уверенность</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        with st.expander("Семантическая связь заголовка и основного текста"):
+                            if rel:
+                                c1, c2, c3, c4 = st.columns(4)
+                                c1.metric("Cosine", f"{rel['cosine']:.3f}")
+                                c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
+                                c3.metric("Overlap", f"{rel['overlap']:.3f}")
+                                c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
 
-                    with st.expander("Семантическая связь заголовка и основного текста"):
-                        if rel:
-                            c1, c2, c3, c4 = st.columns(4)
-                            c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                            c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                            c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                            c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
+                            st.markdown("**Тексты после предобработки:**")
+                            st.write(f"- Заголовок: {h_clean}")
+                            show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
+                            st.write(f"- Текст: {show_body}")
 
-                        st.markdown("**Тексты после предобработки:**")
-                        st.write(f"- Заголовок: {h_clean}")
-                        show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        st.write(f"- Текст: {show_body}")                            
+                    # if reasons:
+                    #     with st.expander("Почему уверенность низкая, а новость фейковая?"):
+                    #         for r in reasons:
+                    #             st.write(f"- {r}")
+
+                            
 
             except Exception as e:
                 st.error(f'❌ Ошибка: {str(e)}')
