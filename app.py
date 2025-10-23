@@ -337,7 +337,7 @@ with st.container():
     c1, c2, c3 = st.columns([1, 2, 1])
     
     with c2:
-        check_button = st.button('Проверить новость', use_container_width=True)
+        check_button = st.button('Проверить новость', use_container_width=True, type="primary")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -623,8 +623,18 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
-                    
 
+                st.markdown("---")
+                st.markdown("### Усредненный ответ")
+                sum_1 = final_label_rf + final_label_rf + prediction_lr + prediction_nb + prediction_rf
+                if sum_1 >= 3:
+                    st.success(f'✅ **РЕАЛЬНАЯ НОВОСТЬ**')
+
+                    st.markdown("Количество предиктов на то, что новость реальная больше.")
+                else:
+                    st.error(f'❌ **ФЕЙКОВАЯ НОВОСТЬ**')
+                    st.markdown("Количество предиктов на то, что новость фейковая больше.")
+                
 
 
             except Exception as e:
@@ -632,40 +642,8 @@ if check_button:
  
 st.markdown("---")
 
-with st.expander("Обзор подходов"):
-    st.info("Векторизация через TF-IDF")
-
-    st.markdown("Использовал векторизацию через ***TF-IDF*** для оценки важности слов в датасете. Score примерно ***0.955***," \
-    " но не удавалось проверить согласованность заголовка и основного текста новости. При указании правильного текста инфоповода и изменении" \
-    " заголовка, модель все равно воспринимала новость, как правдивую, а все предсказания были с маленькой уверенностью.")
-    
-    st.markdown("---")
-    st.image("assets/models_scores.png")
-
-    st.markdown("При написании кода сравнил ***3 модели***:")
-    st.markdown("* Logistic Regression")
-    st.markdown("* Naive Bayes")
-    st.markdown("* Random Forest")
-    st.markdown("Наибольший скор и на валидационном, и на тренировочном датасетах выдала ***Логистическая регрессия***, как видно по графикам.")
-
-    st.markdown("---")
-    st.image("assets/text_lenght.png")
-    
-    st.markdown("---")
-    st.image("assets/wordcloud_vectorized.png")
-
-    st.info("Векториазция через Word2Vec")
-
-    st.markdown("При использовании Word2Vec учитывается семантическая связь между заголовком новости и основным текстом." \
-    "Дополнительно каждый запрос проходит проверку на соответсвие бизнес-правилам. То есть, при изменении заголовка новости на ложный," \
-    "модель это понимает и выводится объяснение, почему при высокой вероятность правдивости новости, она все равно фейковая.")
-
-    st.markdown("При написании кода сравнил ***2 модели***:")
-    st.markdown("* Logistic Regression")
-    st.markdown("* Random Forest")
-    st.markdown("Наибольший скор и на валидационном, и на тренировочном датасетах выдала ***Логистическая регрессия***.")
-
-    st.image("assets/models_scores_w2v.png")
+if st.button("Обзор подходов", help="Обзор подходов, использованных моделей и векторизаторов", type="secondary", use_container_width=True):
+    st.switch_page("pages/info.py")
 
 
 
