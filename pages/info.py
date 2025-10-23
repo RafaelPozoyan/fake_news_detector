@@ -116,5 +116,6 @@ st.markdown("Наибольший скор и на валидационном, �
 
 st.image("assets/models_scores_w2v.png")
 
+st.markdown("---")
 if st.button("Главная страница", use_container_width=True):
     st.switch_page("app.py")
