@@ -1,8 +1,8 @@
 {
     "logisticregression": {
-        "val_accuracy": 0.9263038548752834
+        "val_accuracy": 0.9285714285714286
     },
     "randomforest": {
-        "val_accuracy": 0.9195011337868481
+        "val_accuracy": 0.9206349206349206
     }
 }

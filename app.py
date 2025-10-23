@@ -269,7 +269,7 @@ with st.sidebar:
             <h3 style='color: #FFFFE0;'>О проекте</h3>
             <p>Система автоматической детекции фейковых новостей. При введении заголовка и основного текста статьи, сайт проверит,
             является ли инфоповод подлинным.</p>
-            </p>При решении задачи используются логистическая регрессия и Word2Vec. Материал проверяется на согласованность заголовка и основного текста.</p>
+            </p>При решении задачи используются TF-IDF и Word2Vec. Материал проверяется на согласованность заголовка и основного текста.</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -379,7 +379,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -406,7 +406,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -438,7 +438,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -464,7 +464,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -517,7 +517,7 @@ if check_button:
                 col1, col2, col3 = st.columns(3)
 
                 # random forest
-                with col1:
+                with col3:
                     if prediction_rf == 1:
                         # Реальная новость
                         confidence = probabilities_rf[1] * 100
@@ -529,7 +529,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -546,7 +546,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -565,7 +565,7 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -582,14 +582,14 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
                         )
 
                 # logistic regression
-                with col3:
+                with col1:
                     if prediction_lr == 1:
                         # Реальная новость
                         confidence = probabilities_lr[1] * 100
@@ -601,7 +601,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -618,7 +618,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
-                                <div class='metric-label'><strong>Val Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -635,24 +635,37 @@ st.markdown("---")
 with st.expander("Обзор подходов"):
     st.info("Векторизация через TF-IDF")
 
-    st.markdown("В начале использовал векторизацию через ***TF-IDF*** для оценки важности слов в датасете. Score был примерно ***0.958***," \
+    st.markdown("Использовал векторизацию через ***TF-IDF*** для оценки важности слов в датасете. Score примерно ***0.955***," \
     " но не удавалось проверить согласованность заголовка и основного текста новости. При указании правильного текста инфоповода и изменении" \
-    " заголовка, модель все равно воспринимала новость, как правдивую, а все предсказания были с маленькой уверенностью." \
-    " В итоге принял решение реализовать проект через ***Word2Vec***, чтобы учитывать контекст.")
+    " заголовка, модель все равно воспринимала новость, как правдивую, а все предсказания были с маленькой уверенностью.")
     
     st.markdown("---")
-    st.image("assets/models_scores.png", caption="Сравнение моделей")
+    st.image("assets/models_scores.png")
 
     st.markdown("При написании кода сравнил ***3 модели***:")
     st.markdown("* Logistic Regression")
     st.markdown("* Naive Bayes")
     st.markdown("* Random Forest")
-    st.markdown("Наибольший скор выдала ***Логистическая регрессия***, как видно по графикам.")
+    st.markdown("Наибольший скор и на валидационном, и на тренировочном датасетах выдала ***Логистическая регрессия***, как видно по графикам.")
 
     st.markdown("---")
-    st.image("assets/text_lenght.png", caption="Распределение длины текстов")
+    st.image("assets/text_lenght.png")
     
     st.markdown("---")
-    st.image("assets/wordcloud_vectorized.png", caption="Облако наиболее значимых слов")
+    st.image("assets/wordcloud_vectorized.png")
+
+    st.info("Векториазция через Word2Vec")
+
+    st.markdown("При использовании Word2Vec учитывается семантическая связь между заголовком новости и основным текстом." \
+    "Дополнительно каждый запрос проходит проверку на соответсвие бизнес-правилам. То есть, при изменении заголовка новости на ложный," \
+    "модель это понимает и выводится объяснение, почему при высокой вероятность правдивости новости, она все равно фейковая.")
+
+    st.markdown("При написании кода сравнил ***2 модели***:")
+    st.markdown("* Logistic Regression")
+    st.markdown("* Random Forest")
+    st.markdown("Наибольший скор и на валидационном, и на тренировочном датасетах выдала ***Логистическая регрессия***.")
+
+    st.image("assets/models_scores_w2v.png")
+
 
 
