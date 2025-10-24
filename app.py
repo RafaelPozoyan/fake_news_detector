@@ -330,14 +330,35 @@ with st.expander("Как пользоваться?", expanded=False):
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
- 
+
+if "headline" not in st.session_state:
+    st.session_state.headline = ""
+if "body" not in st.session_state:
+    st.session_state.body = ""
+
+
+def clear_fields():
+    st.session_state.headline = ""
+    st.session_state.body = ""
+
 with st.container():
-    headline = st.text_input('Заголовок новости:', placeholder='Вставьте заголовок новости')
-    body = st.text_area('Текст новости:', height=250, placeholder='Вставьте основной текст новости')
+    headline = st.text_input(
+        'Заголовок новости:',
+        placeholder='Вставьте заголовок новости',
+        key='headline'
+    )
+    body = st.text_area(
+        'Текст новости:',
+        height=250,
+        placeholder='Вставьте основной текст новости',
+        key='body'
+    )
     c1, c2, c3 = st.columns([1, 2, 1])
-    
+
     with c2:
-        check_button = st.button('Проверить новость', use_container_width=True, type="primary")
+        st.button('Очистить поля', use_container_width=True, on_click=clear_fields)
+        check_button = st.button('Проверить новость', use_container_width=True)
+
 
 st.markdown("<br>", unsafe_allow_html=True)
 
