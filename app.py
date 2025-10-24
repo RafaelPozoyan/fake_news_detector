@@ -642,8 +642,14 @@ if check_button:
  
 st.markdown("---")
 
-if st.button("Обзор подходов", help="Обзор подходов, использованных моделей и векторизаторов", type="secondary", use_container_width=True):
-    st.switch_page("pages/info.py")
+but1, but2 = st.columns(2)
+
+with but1:
+    if st.button("Обзор подходов", help="Открыть страницу с обзором подходов: использованных моделей и векторизаторов", type="secondary", use_container_width=True):
+        st.switch_page("pages/info.py")
+with but2:
+    if st.button("В работе...", help="Тестовая кнопка", type="secondary", use_container_width=True, disabled=True):
+        st.switch_page("pages/info.py")
 
 
 

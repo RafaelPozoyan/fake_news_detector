@@ -80,6 +80,9 @@ def set_styles():
     </style>
     """, unsafe_allow_html=True)
 
+if st.button("←"):
+    st.switch_page("app.py")
+
 st.title("Обзор подходов", anchor=None)
 
 st.info("Векторизация через TF-IDF")
@@ -117,5 +120,5 @@ st.markdown("Наибольший скор и на валидационном, �
 st.image("assets/models_scores_w2v.png")
 
 st.markdown("---")
-if st.button("Главная страница", use_container_width=True):
+if st.button("Вернуться на главную страницу", use_container_width=True):
     st.switch_page("app.py")
