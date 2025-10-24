@@ -10,13 +10,9 @@ import json
 import random
 import pandas as pd
 
-train_bodies = pd.read_csv('./data/train_bodies.csv')
+
 test_bodies = pd.read_csv('./data/test_bodies.csv')
-
-train_stances = pd.read_csv('./data/train_stances.csv')
 test_stances = pd.read_csv('./data/test_stances_unlebeledb.csv') 
-
-train_df = train_stances.merge(train_bodies, on='Body ID', how='left')
 test_df = test_stances.merge(test_bodies, on='Body ID', how='left')
 
 with open("results/metrics/metrics.json", "r", encoding="utf-8") as f:
@@ -299,20 +295,6 @@ with st.sidebar:
         st.markdown("<div style='color:#FFFFE0;'><h4>Статус TF-IDF:</h4><p>Нет моделей или эмбеддингов в models</p></div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    # if train_metrics:
-    #     st.markdown(
-    #         f"""
-    #         <div style='color:#FFFFE0;'>
-    #             <h4>Метрики:</h4>
-    #             <ul>
-    #                 <li><strong>Модель:</strong> {train_metrics.get("best_model_name","Logistic Regression + Word2Vec")}</li>
-    #                 <li><strong>Val Accuracy:</strong> {train_metrics.get("val_accuracy","-"):.3f}</li>
-    #                 <li><strong>Val F1:</strong> {train_metrics.get("val_f1","-"):.3f}</li>
-    #             </ul>
-    #         </div>
-    #         """,
-    #         unsafe_allow_html=True
-    #     )
 
 # Главный контент
 st.title('Детектор фейковых новостей')
@@ -432,19 +414,6 @@ if check_button:
                             """,
                             unsafe_allow_html=True
                         )
-                        
-                        # with st.expander("Семантическая связь заголовка и основного текста"):
-                        #     if rel:
-                        #         c1, c2, c3, c4 = st.columns(4)
-                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
-
-                        #     st.markdown("**Тексты после предобработки:**")
-                        #     st.write(f"- Заголовок: {h_clean}")
-                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        #     st.write(f"- Текст: {show_body}") 
 
                     else:
                         st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
@@ -463,18 +432,6 @@ if check_button:
                             with st.expander("Почему сработали бизнес-правила?"):
                                 for r in reasons_lr:
                                     st.write(f"- {r}")
-                        # with st.expander("Семантическая связь заголовка и основного текста"):
-                        #     if rel:
-                        #         c1, c2, c3, c4 = st.columns(4)
-                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
-
-                        #     st.markdown("**Тексты после предобработки:**")
-                        #     st.write(f"- Заголовок: {h_clean}")
-                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        #     st.write(f"- Текст: {show_body}") 
 
                 # Random Forest
                 with col2:
@@ -490,19 +447,7 @@ if check_button:
                             </div>
                             """,
                             unsafe_allow_html=True
-                        )
-                        # with st.expander("Семантическая связь заголовка и основного текста"):
-                        #     if rel:
-                        #         c1, c2, c3, c4 = st.columns(4)
-                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
-
-                        #     st.markdown("**Тексты после предобработки:**")
-                        #     st.write(f"- Заголовок: {h_clean}")
-                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        #     st.write(f"- Текст: {show_body}")                        
+                        )                      
                         
                     else:
                         st.error('❌ **ФЕЙКОВАЯ НОВОСТЬ**')
@@ -521,18 +466,6 @@ if check_button:
                             with st.expander("Почему сработали бизнес-правила?"):
                                 for r in reasons_rf:
                                     st.write(f"- {r}")
-                        # with st.expander("Семантическая связь заголовка и основного текста"):
-                        #     if rel:
-                        #         c1, c2, c3, c4 = st.columns(4)
-                        #         c1.metric("Cosine", f"{rel['cosine']:.3f}")
-                        #         c2.metric("Jaccard", f"{rel['jaccard']:.3f}")
-                        #         c3.metric("Overlap", f"{rel['overlap']:.3f}")
-                        #         c4.metric("L2(h-b)", f"{rel['l2']:.3f}")
-
-                        #     st.markdown("**Тексты после предобработки:**")
-                        #     st.write(f"- Заголовок: {h_clean}")
-                        #     show_body = (' '.join(b_clean.split()[:120]) + ' ...') if len(b_clean.split())>120 else b_clean
-                        #     st.write(f"- Текст: {show_body}")
 
 
                 # =================================

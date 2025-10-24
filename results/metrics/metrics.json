@@ -1,11 +1,11 @@
 {
   "Logistic Regression": {
-    "val_acc": 0.9546485260770975
+    "val_acc": 0.9603174603174603
   },
   "Naive Bayes": {
-    "val_acc": 0.9387755102040817
+    "val_acc": 0.9365079365079365
   },
   "Random Forest": {
-    "val_acc": 0.9217687074829932
+    "val_acc": 0.9410430839002267
   }
 }
