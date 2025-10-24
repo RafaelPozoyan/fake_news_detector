@@ -3,6 +3,6 @@
         "val_accuracy": 0.9251700680272109
     },
     "randomforest": {
-        "val_accuracy": 0.9229024943310657
+        "val_accuracy": 0.9206349206349206
     }
 }

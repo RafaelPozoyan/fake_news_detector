@@ -7,6 +7,17 @@ from PIL import Image
 from gensim.models import KeyedVectors
 import nltk
 import json
+import random
+import pandas as pd
+
+train_bodies = pd.read_csv('./data/train_bodies.csv')
+test_bodies = pd.read_csv('./data/test_bodies.csv')
+
+train_stances = pd.read_csv('./data/train_stances.csv')
+test_stances = pd.read_csv('./data/test_stances_unlebeledb.csv') 
+
+train_df = train_stances.merge(train_bodies, on='Body ID', how='left')
+test_df = test_stances.merge(test_bodies, on='Body ID', how='left')
 
 with open("results/metrics/metrics.json", "r", encoding="utf-8") as f:
     metrics = json.load(f)
@@ -337,6 +348,15 @@ if "body" not in st.session_state:
     st.session_state.body = ""
 
 
+def pick_news():
+    idx = random.randint(0, len(test_df)-1)
+    st.session_state.headline = test_df.loc[idx, "Headline1"]
+    st.session_state.body = test_df.loc[idx, "articleBody"]
+
+def clear_fields():
+    st.session_state.headline = ""
+    st.session_state.body = ""
+
 def clear_fields():
     st.session_state.headline = ""
     st.session_state.body = ""
@@ -356,8 +376,15 @@ with st.container():
     c1, c2, c3 = st.columns([1, 2, 1])
 
     with c2:
-        st.button('Очистить поля', use_container_width=True, on_click=clear_fields)
-        check_button = st.button('Проверить новость', use_container_width=True)
+
+        but1, but2 = st.columns(2)
+
+        with but1:
+            st.button('Подобрать новость', help="Взять рандомную новость из тестового датасета", on_click=pick_news, use_container_width=True)
+        with but2:
+            st.button('Очистить поля', help="Привести поля в исходный вид" ,on_click=clear_fields, use_container_width=True)
+
+        check_button = st.button('Проверить новость', type="primary", use_container_width=True)
 
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -398,8 +425,8 @@ if check_button:
                             f"""
                             <div class='metric-container'>
                                 <div class='metric-label'>Logistic Regression</div>
-                                <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value'>{prob_lr[1]*100:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
@@ -425,8 +452,8 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Logistic Regression</div>
-                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_lr[1])*100:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["logisticregression"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
@@ -457,8 +484,8 @@ if check_button:
                             f"""
                             <div class='metric-container'>
                                 <div class='metric-label'>Random Forest</div>
-                                <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value'>{prob_rf[1]*100:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
@@ -483,8 +510,8 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Random Forest</div>
-                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{(1-prob_rf[1])*100:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics_w2v["randomforest"]["val_accuracy"]:.3f}</div>
                             </div>
                             """,
@@ -548,8 +575,8 @@ if check_button:
                             f"""
                             <div class='metric-container'>
                                 <div class='metric-label'>Random Forest</div>
-                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
@@ -565,8 +592,8 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Random Forest</div>
-                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
@@ -584,8 +611,8 @@ if check_button:
                             f"""
                             <div class='metric-container'>
                                 <div class='metric-label'>Naive Bayes</div>
-                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
@@ -601,8 +628,8 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Naive Bayes</div>
-                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
@@ -620,8 +647,8 @@ if check_button:
                             f"""
                             <div class='metric-container'>
                                 <div class='metric-label'>Logistic Regression</div>
-                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
@@ -637,8 +664,8 @@ if check_button:
                             f"""
                             <div class='metric-container' style='background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);'>
                                 <div class='metric-label'>Logistic Regression</div>
-                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'>Уверенность</div>
+                                <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
                                 <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
