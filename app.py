@@ -16,9 +16,11 @@ test_stances = pd.read_csv('./data/test_stances_unlebeledb.csv')
 test_df = test_stances.merge(test_bodies, on='Body ID', how='left')
 
 with open("results/metrics/metrics.json", "r", encoding="utf-8") as f:
-    metrics = json.load(f)
+    metrics_old = json.load(f)
 with open("results/metrics/metrics_w2v.json", "r", encoding="utf-8") as f:
     metrics_w2v = json.load(f)
+with open("results/metrics/metrics_tfidf_tuned.json", "r", encoding="utf-8") as f:
+    metrics = json.load(f)
 
 st.set_page_config(page_title="Детектор фейковых новостей", page_icon="🔍", layout="wide")
 
@@ -144,14 +146,14 @@ clf, kv, train_metrics = load_artifacts()
 def load_model():
     """Загрузка обученных моделей и векторизатора"""
     try:
-        model_randfor_tf = pickle.load(open('models/Random Forest_model_tf.pkl', 'rb'))
-        model_naibayes_tf = pickle.load(open('models/Naive Bayes_model_tf.pkl', 'rb'))
-        model_logreg_tf = pickle.load(open('models/Logistic Regression_model_tf.pkl', 'rb'))
+        model_randfor_tf = pickle.load(open('models/random_forest_model_tf.pkl', 'rb'))
+        model_naibayes_tf = pickle.load(open('models/naive_bayes_model_tf.pkl', 'rb'))
+        model_logreg_tf = pickle.load(open('models/logistic_regression_model_tf.pkl', 'rb'))
         vectorizer_tf = pickle.load(open('models/tfidf_vectorizer_tf.pkl', 'rb'))
         return model_randfor_tf, model_naibayes_tf, model_logreg_tf, vectorizer_tf, True
     except FileNotFoundError:
-        return None, None, False
-
+        return None, None, None, None, False
+ 
 # Загружаем модель
 model_randfor_tf, model_naibayes_tf, model_logreg_tf, vectorizer_tf, model_loaded = load_model()
 stopwords_list = load_stopwords()
@@ -510,7 +512,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["random_forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -527,7 +529,7 @@ if check_button:
                                 <div class='metric-label'>Random Forest</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Random Forest"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["random_forest"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -546,7 +548,7 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["naive_bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -563,7 +565,7 @@ if check_button:
                                 <div class='metric-label'>Naive Bayes</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Naive Bayes"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["naive_bayes"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -582,7 +584,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["logistic_regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True
@@ -599,7 +601,7 @@ if check_button:
                                 <div class='metric-label'>Logistic Regression</div>
                                 <div class='metric-label'>Уверенность</div>
                                 <div class='metric-value' style='color: #b91c1c;'>{confidence:.1f}%</div>
-                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["Logistic Regression"]["val_acc"]:.3f}</div>
+                                <div class='metric-label'><strong>Accuracy:</strong> {metrics["logistic_regression"]["val_acc"]:.3f}</div>
                             </div>
                             """,
                             unsafe_allow_html=True

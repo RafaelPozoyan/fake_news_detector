@@ -1,0 +1,29 @@
+{
+    "logistic_regression": {
+        "val_acc": 0.9603174603174603,
+        "val_f1": 0.960301382795508,
+        "best_params": {
+            "C": 5,
+            "class_weight": "balanced",
+            "max_iter": 500,
+            "solver": "lbfgs"
+        }
+    },
+    "naive_bayes": {
+        "val_acc": 0.9365079365079365,
+        "val_f1": 0.9364491039806089,
+        "best_params": {
+            "alpha": 1.0
+        }
+    },
+    "random_forest": {
+        "val_acc": 0.9410430839002267,
+        "val_f1": 0.941041871200438,
+        "best_params": {
+            "class_weight": "balanced",
+            "max_depth": null,
+            "min_samples_split": 2,
+            "n_estimators": 300
+        }
+    }
+}
